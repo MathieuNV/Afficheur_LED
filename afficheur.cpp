@@ -1,22 +1,16 @@
 #include "afficheur.h"
-#include "HardwareSerial.h"
+//#include "HardwareSerial.h"
 #include "EEPROM.h"
 #include "Arduino.h"
 #include "font.h"
 
-//static uint8_t toto[3] = {0x02, 0x05, 0x00};
 
-
-     
-
-
-
-Afficheur::Afficheur(int identifiant, SoftwareSerial * serial)
+Afficheur::Afficheur(int identifiant)
 {
     
     m_identifiant = identifiant;
 
-    m_serial = serial;
+//    m_serial = serial;
     
     for (int i; i<50; i++)
     {
@@ -46,21 +40,21 @@ int Afficheur::cmd_dimmer(int luminosite)
 {
   int i = 0;
 
-  m_txBuff[i++]=0x00;   //msb nb data
-  m_txBuff[i++]=0x01;   //lsb nb data
-  m_txBuff[i++]=m_identifiant;
-  m_txBuff[i++]=m_inc++;
+  m_txBuff[i++] = 0x00;   //msb nb data
+  m_txBuff[i++] = 0x01;   //lsb nb data
+  m_txBuff[i++] = m_identifiant;
+  m_txBuff[i++] = m_inc++;
   EEPROM.write(0, m_inc);
-  m_txBuff[i++]='v';    //Identifiant du dimmer
+  m_txBuff[i++] = 'v';    //Identifiant du dimmer
   
   if (luminosite > 0x08)
   {
       return -EAINVALID;
   }
   
-  m_txBuff[i++]=luminosite;
+  m_txBuff[i++] = luminosite;
   
-  m_txLen=i;
+  m_txLen = i;
   
   envoiCmd();
   
@@ -72,14 +66,14 @@ int Afficheur::cmd_reset()
 {
     int i = 0;
     
-    m_txBuff[i++]=0x00;   //msb nb data
-    m_txBuff[i++]=0x01;   //lsb nb data
-    m_txBuff[i++]=m_identifiant;
-    m_txBuff[i++]=m_inc++;
+    m_txBuff[i++] = 0x00;   //msb nb data
+    m_txBuff[i++] = 0x01;   //lsb nb data
+    m_txBuff[i++] = m_identifiant;
+    m_txBuff[i++] = m_inc++;
     EEPROM.write(0, m_inc);
-    m_txBuff[i++]='r';    //Identifiant du test
+    m_txBuff[i++] = 'r';    //Identifiant du test
 
-    m_txLen=i;
+    m_txLen = i;
     
     envoiCmd();
     
@@ -87,88 +81,7 @@ int Afficheur::cmd_reset()
 }
 
 
-int Afficheur::cmd_toto2()
-{
-  /*
-  int i = 0;
-
-  for(i = 0; i<171; i++)
-  {
-    m_txBuff[i] = toto2[i+2] & 0xff;
-  }
-  
-  m_txLen=i;
-  
-  envoiCmd();*/
-}
-
-
-int Afficheur::cmd_toto3()
-{
-  /*
-  int i = 0;
-  
-  for(i = 0; i<293; i++)
-  {
-    m_txBuff[i] = toto3[i+2] & 0xff;
-  }
-  
-  m_txLen=i;
-  
-  envoiCmd();*/
-}
-
-
-
-int Afficheur::cmd_toto()
-{
-  /*
-  int i = 0;
-
-  for(i = 0; i<174; i++)
-  {
-    m_txBuff[i] = toto[i+2] & 0xff;
-  }
-  
-  m_txLen=i;
-  
-  envoiCmd();*/
-
-  
- 
-  /*
-  Serial.print("TX: ");
-  
-  for(i = 0; i<180; i++)
-  {
-    m_serial->write(toto[i]);
-    Serial.print(toto[i], HEX);
-    Serial.print(" ");
-  }
-  
-  Serial.println("");
-  
-  delay(1000);
-
-  if(m_serial->available()) 
-  {
-    Serial.print("RX: (len =");
-    Serial.print(m_serial->available());
-    Serial.print(") ");
-
-    while(m_serial->available())
-    { 
-      Serial.print(m_serial->read(), HEX);
-      Serial.print(" ");
-    }
-    Serial.println();
-    Serial.println();
-  }
-*/
-}
-
-
-int Afficheur::cmd_sendText( int posX, int posY, int width, int policeSize)
+int Afficheur::cmd_sendText( int posX, int posY, int width, int policeSize, String text)
 {
     int i = 0;
     int nbOfBytes = 0;
@@ -200,52 +113,16 @@ int Afficheur::cmd_sendText( int posX, int posY, int width, int policeSize)
 
     nbOfBytes = 0;
 
-    //int index = 16;
-    
-    String toto = "stu";//"abcdefghijklmnopqr";
-
-    for(int j = 0; j < toto.length(); j++)
+    for(int j = 0; j < text.length(); j++)
     {
-      char letter = toto.charAt(j);
+      char letter = text.charAt(j);
       for(int k = 0; k < 5; k++)
       {
         m_txBuff[i+8+nbOfBytes] = Font5x7[(letter-' ')*5+k];
-        
         nbOfBytes++;
-        
-        if(Font5x7[(letter-' ')*5+k] == 0x02)
-        {
-          m_txBuff[i+8+nbOfBytes] = 0x04;
-          nbOfBytes++;
-        }
       }
     }
-    /*
-    for( int j = 0; j < 10; j++)
-    {
-      m_txBuff[i+8+j*5+0] = Font5x7[index*5+0];
-      m_txBuff[i+8+j*5+1] = Font5x7[index*5+1];
-      m_txBuff[i+8+j*5+2] = Font5x7[index*5+2];
-      m_txBuff[i+8+j*5+3] = Font5x7[index*5+3];
-      m_txBuff[i+8+j*5+4] = Font5x7[index*5+4];
-      index++;
-      nbOfBytes+=5;
-    }*/
-/*
-    int index = 20;
- 
-    for( int j = 0; j < 7; j++)
-    {
-      m_txBuff[i+8+j*5+0] = Font5x6[index*5+0];
-      m_txBuff[i+8+j*5+1] = Font5x6[index*5+1];
-      m_txBuff[i+8+j*5+2] = Font5x6[index*5+2];
-      m_txBuff[i+8+j*5+3] = Font5x6[index*5+3];
-      m_txBuff[i+8+j*5+4] = Font5x6[index*5+4];
-      index++;
-      nbOfBytes+=5;
-    }*/
-
-  
+      
     // Set back count numbers
     m_txBuff[i+1] = 8 + nbOfBytes;
     m_txBuff[i+7] = nbOfBytes;
@@ -260,11 +137,11 @@ int Afficheur::cmd_sendText( int posX, int posY, int width, int policeSize)
     
 
     // Set back count numbers
-    m_txBuff[1]=4+8+7+nbOfBytes;
-    m_txBuff[6]=4+8+7+nbOfBytes-3;
+    m_txBuff[1] = 4 + 8 + 7 + nbOfBytes;
+    m_txBuff[6] = 4 + 8 + 7 + nbOfBytes - 3;
 
     // Now finish
-    m_txLen=9+8+7+nbOfBytes;
+    m_txLen = 9 + 8 + 7 + nbOfBytes;
     
     envoiCmd();
     
@@ -316,42 +193,48 @@ int Afficheur::envoiCmd()
 {
     calcul_csum();
     
-    Serial.print("TX:");
+    //Serial.print("TX:");
     
-    m_serial->write(STX);
-    Serial.print(STX, HEX);
-    Serial.print(" ");
+    Serial.write(STX);
+    /*Serial.print(STX, HEX);
+    Serial.print(" ");*/
     
-    m_serial->write(ENQ);
-    Serial.print(ENQ, HEX);
-    Serial.print(" ");
+    Serial.write(ENQ);
+    /*Serial.print(ENQ, HEX);
+    Serial.print(" ");*/
     
     //Serial->write(m_txBuff);
     
     for (int i=0; i<m_txLen; i++)
     {
-        m_serial->write(m_txBuff[i]);
-        Serial.print(m_txBuff[i]& 0xff, HEX);
-        Serial.print(" ");
+        Serial.write(m_txBuff[i]);
+        
+        if(m_txBuff[i] == 0x02)
+        {
+          Serial.write(0x04);
+        }
+        
+        /*Serial.print(m_txBuff[i]& 0xff, HEX);
+        Serial.print(" ");*/
     }
     
-    m_serial->write(STX);
-    Serial.print(STX, HEX);
+    Serial.write(STX);
+    /*Serial.print(STX, HEX);
+    Serial.print(" ");*/
+    
+    Serial.write(ETX);
+    /*Serial.print(ETX, HEX);
+    Serial.print(" ");*/
+        
+    Serial.write(m_csum);
+    /*Serial.print(m_csum & 0xff, HEX);
+    Serial.print(" ");*/
+        
+    Serial.write((uint8_t)ZERO);
+    /*Serial.print((uint8_t)ZERO, HEX);
     Serial.print(" ");
     
-    m_serial->write(ETX);
-    Serial.print(ETX, HEX);
-    Serial.print(" ");
-        
-    m_serial->write(m_csum);
-    Serial.print(m_csum & 0xff, HEX);
-    Serial.print(" ");
-        
-    m_serial->write((uint8_t)ZERO);
-    Serial.print((uint8_t)ZERO, HEX);
-    Serial.print(" ");
-    
-    Serial.println(" ");
+    Serial.println(" ");*/
 
     
     for(int i=0; i<m_txLen; i++)
@@ -361,25 +244,25 @@ int Afficheur::envoiCmd()
     
     m_txLen = 0;
     
-   // delay(2);  // milisecondes laissees
+    delay(2);  // milisecondes laissees
 
-    delay(1000);
-
-    if(m_serial->available()) 
+  //  delay(1000);
+/*
+    if(Serial.available()) 
     {
       Serial.print("RX: (len =");
-      Serial.print(m_serial->available());
+      Serial.print(Serial.available());
       Serial.print(") ");
 
-      while(m_serial->available())
+      while(Serial.available())
       { 
-        Serial.print(m_serial->read(), HEX);
+        Serial.print(Serial.read(), HEX);
         Serial.print(" ");
       }
       Serial.println();
       Serial.println();
     }
-
+*/
     
     return 0;
     
@@ -395,19 +278,12 @@ char Afficheur::calcul_csum()
     
     for(int i=1; i< m_txLen; i++)
     {
-      if( (m_txBuff[i] != 0x02) || ((m_txBuff[i] == 0x02) && (m_txBuff[i+1] == 0x04)) )
-      {
-        if( (i<1) || !((m_txBuff[i] == 0x04) && (m_txBuff[i-1] == 0x02)))
-        {
-          m_csum = m_csum ^ m_txBuff[i];
-        }
-      }
-      
+       m_csum = m_csum ^ m_txBuff[i]; 
     }
     
     m_csum = m_csum ^ ETX;
     
-    Serial.println(m_csum & 0xff, HEX);
+    //sSerial.println(m_csum & 0xff, HEX);
     return m_csum;
     
 }
